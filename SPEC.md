@@ -4,6 +4,7 @@
 - **前端技術棧**：React (Vite)
 - **部署平台**：Vercel (免費、對 Vite 支援極佳、支援自動 CI/CD)
 - **地圖套件**：Leaflet (搭配 `react-leaflet` 進行 React 元件化開發)
+- **地圖圖磚**：內政部國土測繪中心 (NLSC) 臺灣通用電子地圖（100% 繁體中文、免 Key、套用 Soft & Clean 濾鏡）
 
 ## 2. 資料來源 (Data Sources)
 - **第一階段實作 (核心天氣資料)**：[中央氣象署 (CWA) Open Data API](https://opendata.cwa.gov.tw/)

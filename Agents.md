@@ -20,3 +20,8 @@
 5. **部署相容性**：
    - 目標部署環境為 Vercel。
    - 確保環境變數的使用方式符合 Vite 規範 (`import.meta.env.VITE_XXX`)。
+6. **資安與敏感資訊防護**：
+   - **嚴禁將 `.env`、API Keys、私密金鑰或任何高隱私資料提交 (Commit/Push) 至 Git 儲存庫**。
+   - 專案根目錄必須配置 `.gitignore` 並明確排除 `.env` 與 `.env.*`（如 `.env.local` 等敏感檔案）。
+   - 若需提供環境變數設定範例，僅允許建立不含真實金鑰的 `.env.example`。
+

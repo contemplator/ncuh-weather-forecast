@@ -1,9 +1,13 @@
 import React, { useState } from 'react';
-import { Layers, Check, Zap, Wind, Droplets, CloudSun, MapPin, Compass } from 'lucide-react';
+import { Layers, Check, Zap, Wind, Droplets, CloudSun, Compass } from 'lucide-react';
 
-export default function LayerSwitcher({ currentBasemap = 'esri-gray', onBasemapChange }) {
+export default function LayerSwitcher({ 
+  currentBasemap = 'esri-gray', 
+  onBasemapChange,
+  activeLayer = 'weather',
+  onActiveLayerChange
+}) {
   const [isOpen, setIsOpen] = useState(false);
-  const [activeLayers, setActiveLayers] = useState(['weather']);
 
   const basemapOptions = [
     { id: 'esri-gray', name: '極簡淡雅 (Esri Gray)', desc: '現代淺灰畫布，中文地名，極度乾淨' },
@@ -13,11 +17,18 @@ export default function LayerSwitcher({ currentBasemap = 'esri-gray', onBasemapC
   ];
 
   const dataLayers = [
-    { id: 'weather', name: '全台即時天氣', icon: CloudSun, active: true, available: true },
-    { id: 'aqi', name: '空氣品質 (AQI)', icon: Wind, active: false, available: false, tag: 'Phase 2' },
-    { id: 'power', name: '各區用電量負載', icon: Zap, active: false, available: false, tag: 'Phase 2' },
-    { id: 'water', name: '水庫即時水情', icon: Droplets, active: false, available: false, tag: 'Phase 2' },
+    { id: 'weather', name: '全台即時天氣', icon: CloudSun, available: true },
+    { id: 'aqi', name: '空氣品質 (AQI)', icon: Wind, available: true, badge: '即時' },
+    { id: 'power', name: '各區用電量負載', icon: Zap, available: false, tag: '規劃中' },
+    { id: 'water', name: '水庫即時水情', icon: Droplets, available: false, tag: '規劃中' },
   ];
+
+  const handleLayerClick = (layer) => {
+    if (!layer.available) return;
+    if (onActiveLayerChange) {
+      onActiveLayerChange(layer.id);
+    }
+  };
 
   return (
     <div className="layer-switcher-container">
@@ -28,12 +39,54 @@ export default function LayerSwitcher({ currentBasemap = 'esri-gray', onBasemapC
       >
         <Layers size={18} color="#2563eb" />
         <span>圖層與風格</span>
+        {activeLayer === 'aqi' && (
+          <span className="layer-status-indicator aqi">空品</span>
+        )}
       </button>
 
       {isOpen && (
         <div className="glass-panel layer-popup-menu">
-          {/* 底圖風格切換 */}
+          {/* 資料圖層 */}
           <div className="layer-menu-header">
+            <div className="layer-menu-title-row">
+              <Layers size={15} color="#2563eb" />
+              <h4>資料圖層 (Data Layers)</h4>
+            </div>
+            <span className="layer-subtext">點選切換地圖即時呈現指標</span>
+          </div>
+
+          <div className="layer-list">
+            {dataLayers.map(layer => {
+              const Icon = layer.icon;
+              const isChecked = activeLayer === layer.id;
+
+              return (
+                <div
+                  key={layer.id}
+                  className={`layer-item ${!layer.available ? 'disabled' : ''} ${isChecked ? 'active-layer' : ''}`}
+                  onClick={() => handleLayerClick(layer)}
+                >
+                  <div className="layer-item-left">
+                    <Icon size={16} color={isChecked ? '#2563eb' : (layer.available ? '#475569' : '#94a3b8')} />
+                    <span className="layer-name">{layer.name}</span>
+                    {layer.badge && <span className="layer-live-badge">{layer.badge}</span>}
+                  </div>
+
+                  <div className="layer-item-right">
+                    {layer.tag && <span className="phase-tag">{layer.tag}</span>}
+                    {layer.available && (
+                      <div className={`check-box radio-mode ${isChecked ? 'checked' : ''}`}>
+                        {isChecked && <Check size={12} color="#ffffff" />}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+
+          {/* 底圖風格切換 */}
+          <div className="layer-menu-header" style={{ marginTop: '18px' }}>
             <div className="layer-menu-title-row">
               <Compass size={15} color="#2563eb" />
               <h4>底圖風格 (Basemap)</h4>
@@ -57,46 +110,6 @@ export default function LayerSwitcher({ currentBasemap = 'esri-gray', onBasemapC
                 </div>
               </div>
             ))}
-          </div>
-
-          {/* 資料圖層 */}
-          <div className="layer-menu-header" style={{ marginTop: '16px' }}>
-            <div className="layer-menu-title-row">
-              <Layers size={15} color="#2563eb" />
-              <h4>資料圖層 (Data Layers)</h4>
-            </div>
-            <span className="layer-subtext">疊加氣象與生活指標</span>
-          </div>
-
-          <div className="layer-list">
-            {dataLayers.map(layer => {
-              const Icon = layer.icon;
-              const isChecked = activeLayers.includes(layer.id);
-
-              return (
-                <div
-                  key={layer.id}
-                  className={`layer-item ${!layer.available ? 'disabled' : ''}`}
-                  onClick={() => {
-                    if (!layer.available) return;
-                  }}
-                >
-                  <div className="layer-item-left">
-                    <Icon size={16} color={isChecked ? '#2563eb' : '#64748b'} />
-                    <span className="layer-name">{layer.name}</span>
-                  </div>
-
-                  <div className="layer-item-right">
-                    {layer.tag && <span className="phase-tag">{layer.tag}</span>}
-                    {layer.available && (
-                      <div className={`check-box ${isChecked ? 'checked' : ''}`}>
-                        {isChecked && <Check size={12} color="#ffffff" />}
-                      </div>
-                    )}
-                  </div>
-                </div>
-              );
-            })}
           </div>
         </div>
       )}

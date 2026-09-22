@@ -4,7 +4,7 @@ import Header from './components/UI/Header';
 import WeatherDrawer from './components/UI/WeatherDrawer';
 import LayerSwitcher from './components/UI/LayerSwitcher';
 import SyncModal from './components/UI/SyncModal';
-import { fetchTaiwanWeather } from './services/cwaApi';
+import { fetchTaiwanWeather, fetchTaiwanAqi } from './services/cwaApi';
 import { 
   getOrCreateDeviceId, 
   setDeviceId, 
@@ -17,6 +17,8 @@ import { AlertCircle } from 'lucide-react';
 
 export default function App() {
   const [weatherData, setWeatherData] = useState([]);
+  const [aqiData, setAqiData] = useState([]);
+  const [activeLayer, setActiveLayer] = useState('weather'); // 'weather' | 'aqi'
   const [isLoading, setIsLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState('');
   const [lastUpdated, setLastUpdated] = useState('');
@@ -50,32 +52,58 @@ export default function App() {
     saveUserPreferences(deviceId, { favorites, basemap: newBasemap });
   };
 
-  // 抓取氣象資料
-  const loadWeather = useCallback(async () => {
+  // 同步抓取氣象與空氣品質資料
+  const loadAllData = useCallback(async () => {
     setIsLoading(true);
     setErrorMessage('');
     try {
-      const records = await fetchTaiwanWeather();
-      setWeatherData(records);
+      const [weatherRes, aqiRes] = await Promise.allSettled([
+        fetchTaiwanWeather(),
+        fetchTaiwanAqi()
+      ]);
+
+      let loadedWeather = [];
+      let loadedAqi = [];
+
+      if (weatherRes.status === 'fulfilled') {
+        loadedWeather = weatherRes.value;
+        setWeatherData(loadedWeather);
+      } else {
+        console.error('抓取氣象失敗:', weatherRes.reason);
+        setErrorMessage('部分氣象資料載入異常，請確認網路連線。');
+      }
+
+      if (aqiRes.status === 'fulfilled') {
+        loadedAqi = aqiRes.value;
+        setAqiData(loadedAqi);
+      } else {
+        console.warn('抓取空氣品質異常:', aqiRes.reason);
+      }
+
       const now = new Date();
       setLastUpdated(`${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`);
       
+      // 若當前有選中的城市，同步更新其天氣與空品快照
       if (selectedLocation) {
-        const updatedInfo = records.find(r => r.locationName.replace('台', '臺') === selectedLocation.name.replace('台', '臺'));
-        if (updatedInfo) {
-          setSelectedLocation(prev => ({ ...prev, weatherInfo: updatedInfo }));
-        }
+        const normName = selectedLocation.name.replace('台', '臺');
+        const updatedWeather = loadedWeather.find(r => r.locationName.replace('台', '臺') === normName);
+        const updatedAqi = loadedAqi.find(r => r.locationName.replace('台', '臺') === normName);
+        setSelectedLocation(prev => ({ 
+          ...prev, 
+          weatherInfo: updatedWeather || prev.weatherInfo,
+          aqiInfo: updatedAqi || prev.aqiInfo
+        }));
       }
     } catch (err) {
-      console.error(err);
-      setErrorMessage(err.message || '無法取得氣象資料，請檢查網路連線或 API Key。');
+      console.error('資料整合抓取失敗:', err);
+      setErrorMessage(err.message || '無法取得氣象與空品資料。');
     } finally {
       setIsLoading(false);
     }
   }, [selectedLocation]);
 
   useEffect(() => {
-    loadWeather();
+    loadAllData();
   }, []);
 
   // 儲存我的最愛並雙向同步 (LocalStorage + Supabase)
@@ -108,16 +136,20 @@ export default function App() {
   const handleSelectFavorite = (cityName) => {
     const loc = TAIWAN_LOCATIONS.find(l => l.name === cityName || l.alias.includes(cityName));
     if (loc) {
-      const weatherInfo = weatherData.find(w => w.locationName.replace('台', '臺') === loc.name.replace('台', '臺'));
-      setSelectedLocation({ ...loc, weatherInfo });
+      const normName = loc.name.replace('台', '臺');
+      const weatherInfo = weatherData.find(w => w.locationName.replace('台', '臺') === normName);
+      const aqiInfo = aqiData.find(a => a.locationName.replace('台', '臺') === normName);
+      setSelectedLocation({ ...loc, weatherInfo, aqiInfo });
     }
   };
 
   return (
     <div className="app-container">
-      {/* 滿版地圖 (主視圖) */}
+      {/* 滿版地圖 (主視圖，支援即時天氣與 AQI 雙圖層) */}
       <WeatherMap
         weatherData={weatherData}
+        aqiData={aqiData}
+        activeLayer={activeLayer}
         selectedLocation={selectedLocation}
         onSelectLocation={setSelectedLocation}
         basemap={basemap}
@@ -126,7 +158,7 @@ export default function App() {
       {/* 頂部毛玻璃導覽列 */}
       <Header
         lastUpdated={lastUpdated}
-        onRefresh={loadWeather}
+        onRefresh={loadAllData}
         isLoading={isLoading}
         favorites={favorites}
         onSelectFavorite={handleSelectFavorite}
@@ -138,6 +170,8 @@ export default function App() {
       <LayerSwitcher
         currentBasemap={basemap}
         onBasemapChange={handleBasemapChange}
+        activeLayer={activeLayer}
+        onActiveLayerChange={setActiveLayer}
       />
 
       {/* 雲端同步與裝置管理彈窗 */}
@@ -157,7 +191,7 @@ export default function App() {
         </div>
       )}
 
-      {/* 次視圖：詳細氣象資訊抽屜/卡片 */}
+      {/* 次視圖：詳細氣象與空品綜合資訊抽屜 */}
       <WeatherDrawer
         location={selectedLocation}
         onClose={() => setSelectedLocation(null)}

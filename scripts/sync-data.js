@@ -18,9 +18,9 @@ if (fs.existsSync(envPath)) {
   });
 }
 
-const CWA_API_KEY = process.env.VITE_CWA_API_KEY || process.env.CWA_API_KEY;
-const SUPABASE_URL = process.env.VITE_SUPABASE_URL || process.env.SUPABASE_URL;
-const SUPABASE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.VITE_SUPABASE_ANON_KEY || process.env.SUPABASE_ANON_KEY;
+const CWA_API_KEY = process.env.CWA_API_KEY || process.env.VITE_CWA_API_KEY;
+const SUPABASE_URL = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL;
+const SUPABASE_KEY = process.env.SUPABASE_KEY || process.env.SUPABASE_ANON_KEY || process.env.VITE_SUPABASE_ANON_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY;
 
 if (!SUPABASE_URL || !SUPABASE_KEY) {
   console.error('[Error] 未找到 Supabase 連線資訊 (SUPABASE_URL / SUPABASE_KEY)，終止執行。');

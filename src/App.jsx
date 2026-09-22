@@ -80,8 +80,22 @@ export default function App() {
         console.warn('抓取空氣品質異常:', aqiRes.reason);
       }
 
-      const now = new Date();
-      setLastUpdated(`${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`);
+      // 優先讀取資料庫快取的最後同步時間 (recorded_at)，無則回退為當前客戶端時間
+      const latestTimestamp = loadedWeather[0]?.recordedAt || loadedAqi[0]?.recordedAt;
+      if (latestTimestamp) {
+        const d = new Date(latestTimestamp);
+        if (!isNaN(d.getTime())) {
+          const hours = d.getHours().toString().padStart(2, '0');
+          const minutes = d.getMinutes().toString().padStart(2, '0');
+          setLastUpdated(`${hours}:${minutes}`);
+        } else {
+          const now = new Date();
+          setLastUpdated(`${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`);
+        }
+      } else {
+        const now = new Date();
+        setLastUpdated(`${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`);
+      }
       
       // 若當前有選中的城市，同步更新其天氣與空品快照
       if (selectedLocation) {

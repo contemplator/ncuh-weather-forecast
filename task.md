@@ -72,11 +72,12 @@
 ## Phase 4: 資料庫排程爬蟲與快取同步機制
 *核心目標：解決 API 限流與金鑰暴露問題，由排程定期抓取天氣與 AQI 寫入 Supabase，前端改讀資料庫快取。*
 
-- `[ ]` **4.1 資料庫 Schema 擴充**
-  - `[ ]` 於 Supabase 建立 `public.weather_records` 表格 (儲存縣市天氣、氣溫、降雨機率與時間戳記)。
-  - `[ ]` 於 Supabase 建立 `public.aqi_records` 表格 (儲存縣市 AQI、PM2.5、空氣品質等級與時間戳記)。
-  - `[ ]` 設定 RLS 公開讀取權限 (Public Select)。
-  - `[ ]` **驗證標準**：可在 Supabase 後台查看到兩張新資料表且欄位型態正確。
+- `[x]` **4.1 資料庫 Schema 擴充**
+  - `[x]` 於 Supabase 建立 `public.weather_records` 表格 (儲存縣市天氣、氣溫、降雨機率、36小時預報與時間戳記)。
+  - `[x]` 於 Supabase 建立 `public.aqi_records` 表格 (儲存縣市 AQI、PM2.5、空氣品質等級與時間戳記)。
+  - `[x]` 建立即時檢視表 `public.latest_weather` 與 `public.latest_aqi` 供前端一鍵直讀 22 縣市最新資料。
+  - `[x]` 設定 RLS 公開讀取權限 (Public Select) 與查詢索引優化。
+  - `[x]` **驗證標準**：已透過 Supabase MCP 成功套用 Migration，並完成 Table 與欄位型態驗證。
 - `[ ]` **4.2 建立排程同步爬蟲腳本**
   - `[ ]` 撰寫 Node.js 爬蟲腳本 `scripts/sync-data.js`。
   - `[ ]` 串接氣象署 API 與環境部空氣品質 API，清洗並正規化 22 縣市資料。

@@ -51,7 +51,10 @@ export default function Header({
         </button>
 
         {lastUpdated && (
-          <span className="last-update-text" title="氣象與空品快取時間（後台每小時自動排程同步）">
+          <span 
+            className="last-update-text" 
+            data-tooltip="氣象與空品快取時間（後台每小時自動排程同步）"
+          >
             資料時間 {lastUpdated}
           </span>
         )}

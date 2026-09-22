@@ -27,12 +27,15 @@
   - **圖層切換器 (Layer Switcher)**：畫面上預留一個懸浮的圖層切換選單，目前先顯示「天氣圖層」，未來擴充時可直接勾選疊加「AQI」、「用電量」、「水庫」等資料。
 
 ## 5. 開發階段規劃 (Roadmap)
-- **Phase 1 (本次作業目標)**
-  - 步驟 1: 初始化 React (Vite) 專案與安裝 Leaflet。
-  - 步驟 2: 繪製滿版地圖，對焦於台灣。
-  - 步驟 3: 申請並串接氣象署 API，處理 JSON 資料。
-  - 步驟 4: 在地圖上放置各縣市天氣標記 (Marker) 與毛玻璃資訊卡片 (Popup)。
-  - 步驟 5: 部署至 Vercel，提供可供老師與同學檢視的公開網址。
-- **Phase 2 (未來擴充)**
-  - 串接環境部與台電 API，啟用圖層切換器。
-  - 導入 Supabase 建立個人化儲存機制。
+- **Phase 1 (基礎地圖與氣象渲染)**：React (Vite) + Leaflet + 玻璃擬物化 UI + 氣象署 API。
+- **Phase 2 (雲端持久化)**：導入 Supabase 建立 `user_preferences` 表與免登入裝置同步碼 (Sync ID)。
+- **Phase 3 (發布與文件)**：專案打包優化、Vercel 自動化 CI/CD 部署、完善 README。
+- **Phase 4 (資料庫排程爬蟲與快取同步)**：
+  - 建立 `weather_records` 與 `aqi_records` 資料表。
+  - GitHub Actions 排程 (`cron: '0 * * * *'`) 每小時執行 Node.js 爬蟲同步快取。
+  - 前端優先讀取資料庫快取，避免 API 限流與金鑰暴露。
+- **Phase 5 (空氣品質 AQI 圖層與生活指標整合)**：
+  - 啟用 `LayerSwitcher` 的 AQI 圖層切換。
+  - 實作 6 級健康色碼動態標記與圖例 (Legend)。
+  - `WeatherDrawer` 結合氣溫與空品提供更全方位的出行防護建議。
+

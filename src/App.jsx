@@ -3,12 +3,17 @@ import WeatherMap from './components/Map/WeatherMap';
 import Header from './components/UI/Header';
 import WeatherDrawer from './components/UI/WeatherDrawer';
 import LayerSwitcher from './components/UI/LayerSwitcher';
+import SyncModal from './components/UI/SyncModal';
 import { fetchTaiwanWeather } from './services/cwaApi';
+import { 
+  getOrCreateDeviceId, 
+  setDeviceId, 
+  fetchUserPreferences, 
+  saveUserPreferences, 
+  getLocalPreferences 
+} from './services/preferencesService';
 import { TAIWAN_LOCATIONS } from './constants/taiwanLocations';
 import { AlertCircle } from 'lucide-react';
-
-const STORAGE_KEY_FAVORITES = 'nchu_weather_favorites';
-const STORAGE_KEY_BASEMAP = 'nchu_weather_basemap';
 
 export default function App() {
   const [weatherData, setWeatherData] = useState([]);
@@ -16,27 +21,34 @@ export default function App() {
   const [errorMessage, setErrorMessage] = useState('');
   const [lastUpdated, setLastUpdated] = useState('');
   const [selectedLocation, setSelectedLocation] = useState(null);
-  const [basemap, setBasemap] = useState(() => {
-    return localStorage.getItem(STORAGE_KEY_BASEMAP) || 'esri-gray';
-  });
-  const [favorites, setFavorites] = useState(() => {
-    try {
-      const saved = localStorage.getItem(STORAGE_KEY_FAVORITES);
-      return saved ? JSON.parse(saved) : ['臺中市', '臺北市'];
-    } catch {
-      return ['臺中市', '臺北市'];
-    }
-  });
 
+  // 雲端同步與偏好狀態
+  const [deviceId, setDeviceIdState] = useState(getOrCreateDeviceId());
+  const [isCloudConnected, setIsCloudConnected] = useState(false);
+  const [isSyncModalOpen, setIsSyncModalOpen] = useState(false);
+
+  const initialPref = getLocalPreferences();
+  const [basemap, setBasemap] = useState(initialPref.basemap);
+  const [favorites, setFavorites] = useState(initialPref.favorites);
+
+  // 初始化時向 Supabase 獲取雲端偏好
+  useEffect(() => {
+    async function loadCloudPreferences() {
+      const { data, isCloud } = await fetchUserPreferences(deviceId);
+      setIsCloudConnected(isCloud);
+      if (data) {
+        if (data.basemap) setBasemap(data.basemap);
+        if (data.favorites) setFavorites(data.favorites);
+      }
+    }
+    loadCloudPreferences();
+  }, [deviceId]);
+
+  // 切換底圖並同步儲存
   const handleBasemapChange = (newBasemap) => {
     setBasemap(newBasemap);
-    try {
-      localStorage.setItem(STORAGE_KEY_BASEMAP, newBasemap);
-    } catch (e) {
-      console.error(e);
-    }
+    saveUserPreferences(deviceId, { favorites, basemap: newBasemap });
   };
-
 
   // 抓取氣象資料
   const loadWeather = useCallback(async () => {
@@ -48,7 +60,6 @@ export default function App() {
       const now = new Date();
       setLastUpdated(`${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`);
       
-      // 如果已經有選取的縣市，同步更新該縣市最新天氣
       if (selectedLocation) {
         const updatedInfo = records.find(r => r.locationName.replace('台', '臺') === selectedLocation.name.replace('台', '臺'));
         if (updatedInfo) {
@@ -67,7 +78,7 @@ export default function App() {
     loadWeather();
   }, []);
 
-  // 儲存我的最愛至 localStorage
+  // 儲存我的最愛並雙向同步 (LocalStorage + Supabase)
   const handleToggleFavorite = (cityName) => {
     setFavorites(prev => {
       let updated;
@@ -76,16 +87,24 @@ export default function App() {
       } else {
         updated = [...prev, cityName];
       }
-      try {
-        localStorage.setItem(STORAGE_KEY_FAVORITES, JSON.stringify(updated));
-      } catch (e) {
-        console.error('LocalStorage 儲存失敗:', e);
-      }
+      saveUserPreferences(deviceId, { favorites: updated, basemap });
       return updated;
     });
   };
 
-  // 點擊頂部最愛標籤時，快速定位並開啟抽屜
+  // 切換裝置識別碼 (跨瀏覽器同步)
+  const handleSwitchDevice = async (newDeviceId) => {
+    setDeviceId(newDeviceId);
+    setDeviceIdState(newDeviceId);
+    const { data, isCloud } = await fetchUserPreferences(newDeviceId);
+    setIsCloudConnected(isCloud);
+    if (data) {
+      if (data.basemap) setBasemap(data.basemap);
+      if (data.favorites) setFavorites(data.favorites);
+    }
+  };
+
+  // 點擊頂部最愛標籤時快速定位
   const handleSelectFavorite = (cityName) => {
     const loc = TAIWAN_LOCATIONS.find(l => l.name === cityName || l.alias.includes(cityName));
     if (loc) {
@@ -111,12 +130,23 @@ export default function App() {
         isLoading={isLoading}
         favorites={favorites}
         onSelectFavorite={handleSelectFavorite}
+        isCloudConnected={isCloudConnected}
+        onOpenSyncModal={() => setIsSyncModalOpen(true)}
       />
 
       {/* 右上角圖層與風格切換選單 */}
       <LayerSwitcher
         currentBasemap={basemap}
         onBasemapChange={handleBasemapChange}
+      />
+
+      {/* 雲端同步與裝置管理彈窗 */}
+      <SyncModal
+        isOpen={isSyncModalOpen}
+        onClose={() => setIsSyncModalOpen(false)}
+        deviceId={deviceId}
+        onSwitchDevice={handleSwitchDevice}
+        isCloudConnected={isCloudConnected}
       />
 
       {/* 錯誤警示卡片 */}

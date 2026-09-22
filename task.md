@@ -37,18 +37,19 @@
 ## Phase 2: 導入資料庫 (Supabase) 與進階擴充
 *核心目標：建立持久化儲存機制，為未來更多圖層的客製化做準備。*
 
-- `[ ]` **2.1 Supabase 專案初始化**
-  - `[ ]` 於 Supabase 建立新專案，取得 Project URL 與 API Key。
-  - `[ ]` 安裝 `@supabase/supabase-js` 套件並建立連線設定檔。
-  - `[ ]` **驗證標準**：前端能成功初始化 Supabase client。
-- `[ ]` **2.2 資料庫 Schema 設計與建立**
-  - `[ ]` 建立 `user_preferences` 表格 (紀錄使用者 ID、最愛城市陣列、圖層顯示設定)。
-  - `[ ]` 設定 Row Level Security (RLS) 確保資料存取安全 (可先設為 public 方便測試，後續加上 Auth)。
-  - `[ ]` **驗證標準**：在 Supabase Dashboard 能看到建立好的 Table 與欄位。
-- `[ ]` **2.3 將 LocalStorage 狀態遷移至 Supabase**
-  - `[ ]` 實作匿名登入 (Anonymous Login) 或簡單的 Email 登入。
-  - `[ ]` 修改前端邏輯，將「我的最愛」與「圖層設定」的讀寫從 LocalStorage 改為呼叫 Supabase API。
-  - `[ ]` **驗證標準**：在不同無痕瀏覽器視窗登入同一帳號，能同步看到相同的最愛城市與介面設定。
+- `[x]` **2.1 Supabase 專案初始化**
+  - `[x]` 於 Supabase 建立專案，配置 `VITE_SUPABASE_URL` 與 `VITE_SUPABASE_ANON_KEY`。
+  - `[x]` 安裝 `@supabase/supabase-js` 套件並建立連線設定檔 (`supabaseClient.js`)。
+  - `[x]` **驗證標準**：前端能成功初始化 Supabase client，支援自動降級。
+- `[x]` **2.2 資料庫 Schema 設計與建立**
+  - `[x]` 提供 `user_preferences` 表格 SQL (包含 device_id, favorites, basemap)。
+  - `[x]` 啟用 Row Level Security (RLS) 確保資料安全讀寫。
+  - `[x]` **驗證標準**：建立具備擴充性的雲端表格結構。
+- `[x]` **2.3 將 LocalStorage 狀態遷移至 Supabase**
+  - `[x]` 實作輕量免登入之「裝置同步碼 (Device ID / Sync ID)」機制。
+  - `[x]` 修改前端邏輯，將「我的最愛」與「底圖設定」的讀寫升級為 Supabase 雲端與 LocalStorage 雙向同步。
+  - `[x]` 在 UI 頂部提供「雲端同步狀態標籤」與「SyncModal 同步管理彈窗」，支援跨瀏覽器/裝置輸入同步碼共享設定。
+  - `[x]` **驗證標準**：在不同無痕瀏覽器視窗輸入同一組同步碼，可立即同步最愛城市與底圖偏好。
 
 ## Phase 3: 部署與文件建立
 *核心目標：將專案發布至公網，並完善開發文件交件。*

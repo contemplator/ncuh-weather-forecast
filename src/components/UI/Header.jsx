@@ -6,7 +6,9 @@ export default function Header({
   onRefresh, 
   isLoading, 
   favorites = [], 
-  onSelectFavorite 
+  onSelectFavorite,
+  isCloudConnected = false,
+  onOpenSyncModal
 }) {
   return (
     <header className="header-container">
@@ -38,6 +40,16 @@ export default function Header({
 
       {/* 操作區 */}
       <div className="header-actions">
+        {/* 雲端同步狀態按鈕 */}
+        <button
+          onClick={onOpenSyncModal}
+          className="glass-btn sync-indicator-btn"
+          title={isCloudConnected ? 'Supabase 雲端資料庫已連線 (點擊管理)' : '本地模式 (點擊管理)'}
+        >
+          <span className={`sync-dot ${isCloudConnected ? 'connected' : ''}`} />
+          <span className="sync-text">{isCloudConnected ? '雲端同步' : '本地模式'}</span>
+        </button>
+
         {lastUpdated && (
           <span className="last-update-text">
             更新於 {lastUpdated}

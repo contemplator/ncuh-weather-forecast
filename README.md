@@ -5,6 +5,15 @@
 
 ---
 
+## 🔗 線上體驗 (Live Demo)
+
+- 🌐 **正式上線網址**：**[https://ncuh-weather-forecast.vercel.app](https://ncuh-weather-forecast.vercel.app)**
+- ⚡ **自動化持續部署**：已由 Vercel 連動 GitHub 自動建置與發布。
+
+![Weather & Life Map 成果截圖](./docs/screenshots/demo.png)
+
+---
+
 ## 🌟 核心特色 (Key Features)
 
 - 🗺️ **滿版互動地圖 (Map-First)**：以台灣為中心的全螢幕 Web GIS 地圖，直觀瀏覽 22 縣市即時氣候徽章。

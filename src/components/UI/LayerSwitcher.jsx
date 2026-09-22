@@ -31,7 +31,7 @@ export default function LayerSwitcher({
   };
 
   return (
-    <div className="layer-switcher-container">
+    <div className={`layer-switcher-container ${isOpen ? 'open' : ''}`}>
       <button
         onClick={() => setIsOpen(!isOpen)}
         className="glass-btn layer-toggle-btn"

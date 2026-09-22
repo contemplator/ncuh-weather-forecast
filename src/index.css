@@ -115,7 +115,7 @@ body {
   top: 16px;
   left: 16px;
   right: 16px;
-  z-index: 1000;
+  z-index: 1100;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -196,6 +196,7 @@ body {
 .last-update-text:hover {
   background: rgba(255, 255, 255, 0.95);
   color: #0f172a;
+  z-index: 50;
 }
 
 .last-update-text::after {
@@ -443,6 +444,10 @@ body {
   top: 80px;
   right: 16px;
   z-index: 1000;
+}
+
+.layer-switcher-container.open {
+  z-index: 1200;
 }
 
 .layer-toggle-btn {

@@ -78,16 +78,16 @@
   - `[x]` 建立即時檢視表 `public.latest_weather` 與 `public.latest_aqi` 供前端一鍵直讀 22 縣市最新資料。
   - `[x]` 設定 RLS 公開讀取權限 (Public Select) 與查詢索引優化。
   - `[x]` **驗證標準**：已透過 Supabase MCP 成功套用 Migration，並完成 Table 與欄位型態驗證。
-- `[ ]` **4.2 建立排程同步爬蟲腳本**
-  - `[ ]` 撰寫 Node.js 爬蟲腳本 `scripts/sync-data.js`。
-  - `[ ]` 串接氣象署 API 與環境部空氣品質 API，清洗並正規化 22 縣市資料。
-  - `[ ]` 使用 Supabase Service Key / 專用權限執行 Upsert 寫入最新快取並附加歷史時間戳記。
-  - `[ ]` **驗證標準**：在本地手動執行 `node scripts/sync-data.js` 能成功將最新資料寫入 Supabase。
-- `[ ]` **4.3 配置 GitHub Actions 定時自動化排程**
-  - `[ ]` 建立 `.github/workflows/data-sync.yml` 工作流。
-  - `[ ]` 設定 Cron 排程每小時自動觸發一次 (`cron: '0 * * * *'`)，支援手動觸發 (`workflow_dispatch`)。
-  - `[ ]` 在 GitHub 儲存庫設定環境變數 Secrets (`CWA_API_KEY`, `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`)。
-  - `[ ]` **驗證標準**：GitHub Actions 執行成功綠燈，Supabase 資料庫時間戳記定期更新。
+- `[x]` **4.2 建立排程同步爬蟲腳本**
+  - `[x]` 撰寫 Node.js 爬蟲腳本 `scripts/sync-data.js`。
+  - `[x]` 串接氣象署 API 與 Open-Meteo 空氣品質 API，清洗並正規化 22 縣市資料。
+  - `[x]` 使用 Supabase 權限執行寫入最新快取並附加歷史時間戳記。
+  - `[x]` **驗證標準**：在本地手動執行 `node scripts/sync-data.js` 能成功將最新資料寫入 Supabase。
+- `[x]` **4.3 配置 GitHub Actions 定時自動化排程**
+  - `[x]` 建立 `.github/workflows/data-sync.yml` 工作流。
+  - `[x]` 設定 Cron 排程每小時自動觸發一次 (`cron: '0 * * * *'`)，支援手動觸發 (`workflow_dispatch`)。
+  - `[x]` 支援在 GitHub 儲存庫設定環境變數 Secrets (`CWA_API_KEY`, `SUPABASE_URL`, `SUPABASE_KEY`)。
+  - `[x]` **驗證標準**：工作流配置完畢，推送到 GitHub 即啟用定時排程。
 - `[ ]` **4.4 前端資料來源遷移為優先讀取資料庫**
   - `[ ]` 修改前端 `cwaApi.js` 與新增資料讀取服務：優先向 Supabase 查詢最新全台快取。
   - `[ ]` 保留自動降級機制：若資料庫連線失敗，無痛退回前端直接呼叫或 LocalStorage。

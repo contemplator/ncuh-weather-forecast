@@ -1,0 +1,35 @@
+name: Hourly Weather & AQI Sync
+
+on:
+  schedule:
+    # 每小時第 0 分鐘自動執行一次 (UTC 基準)
+    - cron: '0 * * * *'
+  workflow_dispatch: # 支援在 GitHub 網頁手動點擊「Run workflow」立即觸發
+  push:
+    paths:
+      - 'scripts/**'
+      - '.github/workflows/data-sync.yml'
+
+jobs:
+  sync-data:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+
+      - name: Install Dependencies
+        run: npm ci || npm install
+
+      - name: Run Weather & AQI Crawler
+        run: npm run sync
+        env:
+          CWA_API_KEY: ${{ secrets.CWA_API_KEY || secrets.VITE_CWA_API_KEY }}
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL || secrets.VITE_SUPABASE_URL }}
+          SUPABASE_KEY: ${{ secrets.SUPABASE_KEY || secrets.SUPABASE_SERVICE_ROLE_KEY || secrets.VITE_SUPABASE_ANON_KEY }}
